@@ -5,8 +5,15 @@ import type {
   VercelRequestQuery,
   VercelRequestBody,
 } from './types';
-import { Server } from 'http';
+
+import { IncomingMessage, ClientRequest, Server } from 'http';
 import type { Bridge } from './bridge';
+
+type ObservabilityOutput = {
+  req: ClientRequest;
+  res: IncomingMessage;
+  duration: number;
+};
 
 function getBodyParser(req: VercelRequest, body: Buffer) {
   return function parseBody(): VercelRequestBody {
@@ -294,6 +301,20 @@ export function createServerWithHelpers(
       res.redirect = (statusOrUrl, url) => redirect(res, statusOrUrl, url);
       res.send = body => send(req, res, body);
       res.json = jsonBody => json(req, res, jsonBody);
+
+      require('./observability')(
+        ({ req, res, duration }: ObservabilityOutput) => {
+          require('./observability/send')({ url: '', token: '' })({
+            duration,
+            host: req.host,
+            method: req.method,
+            name: 'fetch-request',
+            pathname: req.path,
+            statusCode: res.statusCode,
+            type: 'metric',
+          });
+        }
+      );
 
       await handler(req, res);
     } catch (err) {

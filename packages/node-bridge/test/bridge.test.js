@@ -3,8 +3,12 @@ const crypto = require('crypto');
 const jsonlines = require('jsonlines');
 const { Server } = require('http');
 const { Bridge } = require('../bridge');
-const { runServer } = require('./run-test-server');
-const { runTcpServer } = require('./run-test-server');
+
+const {
+  createDeferred,
+  runTcpServer,
+  runServer,
+} = require('./run-test-server');
 
 test('port binding', async () => {
   const server = new Server();
@@ -477,11 +481,3 @@ test('`NowProxyEvent` proxy streaming with an async handler', async () => {
   httpServer.close();
   tcpServerCallback.close();
 });
-
-function createDeferred() {
-  let resolve;
-  const deferred = new Promise(_resolve => {
-    resolve = _resolve;
-  });
-  return { deferred, resolve };
-}

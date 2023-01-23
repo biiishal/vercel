@@ -11,6 +11,14 @@ exports.runServer = async function runServer({ handler }) {
   return { url: new URL(url), close: getKillServer(server) };
 };
 
+exports.createDeferred = function createDeferred() {
+  let resolve;
+  const deferred = new Promise(_resolve => {
+    resolve = _resolve;
+  });
+  return { deferred, resolve };
+};
+
 function getKillServer(server) {
   let sockets = [];
 
